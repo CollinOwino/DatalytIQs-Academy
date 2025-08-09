@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helper Functions ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == "admin";
+    }
+
+    function isSelf(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // ---------- Users Collection ----------
+    match /users/{uid} {
+      allow create: if isSignedIn(); // Allow users to create their own profile
+      allow get, update, delete: if isSelf(uid);
+    }
+
+    // ---------- Quiz Responses Collection ----------
+    match /quizResponses/{responseId} {
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow update, delete: if false; // Immutable once submitted
+    }
+
+    // ---------- Classes Collection ----------
+    match /classes/{classId} {
+      allow get: if true; // Publicly visible
+      allow list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- Chats Collection ----------
+    match /chats/{chatId}/messages/{messageId} {
+      allow get, list, create: if isSignedIn(); // Signed-in users can participate
+      allow update, delete: if false; // Prevent tampering
+    }
+
+    // ---------- Courses Collection ----------
+    match /courses/{courseId} {
+      allow get, list: if isSignedIn(); // Only logged-in users can view courses
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- Live Sessions Collection ----------
+    match /liveSessions/{sessionId} {
+      allow create: if isSignedIn();
+      allow get, update: if isSelf(sessionId); // Only owner can view or update their session
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Default Deny All ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

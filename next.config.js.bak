@@ -1,0 +1,19 @@
+﻿const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    esmExternals: false
+  },
+  webpack(config) {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      child_process: false,
+      process: require.resolve('process/browser'),
+    };
+    return config;
+  },
+};
+
+module.exports = nextConfig;

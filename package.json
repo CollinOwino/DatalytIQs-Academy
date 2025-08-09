@@ -1,0 +1,62 @@
+{
+  "name": "datalytiqs-academy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "![CI](https://img.shields.io/github/actions/workflow/status/your-org/DatalytIQs-Academy/ci.yml?branch=main) ![License](https://img.shields.io/github/license/your-org/DatalytIQs-Academy) ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
+    "build": "next build",
+    "start": "next start",
+    "analyze": "cross-env ANALYZE=true next build",
+    "clean": "rimraf .next && rimraf node_modules && rimraf coverage",
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:deploy": "firebase deploy --only hosting",
+    "firebase:deploy:all": "firebase deploy",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "firebase": "^10.14.1",
+    "firebase-admin": "^13.4.0",
+    "firebaseui": "^6.1.0",
+    "lucide-react": "^0.525.0",
+    "next": "^15.4.4",
+    "react": "^19.1.1",
+    "react-countdown": "^2.3.6",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "@types/react": "^19.1.8",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "buffer": "^6.0.3",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.1.0",
+    "glob": "^10.4.5",
+    "node-polyfill-webpack-plugin": "^4.1.0",
+    "path-browserify": "^1.0.1",
+    "prettier": "^3.2.5",
+    "process": "^0.11.10",
+    "rimraf": "^4.4.1",
+    "typescript": "^5.8.3"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CollinOwino/DatalytIQs-Academy.git"
+  },
+  "keywords": [],
+  "author": "Collins Odhiambo Owino",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CollinOwino/DatalytIQs-Academy/issues"
+  },
+  "homepage": "https://github.com/CollinOwino/DatalytIQs-Academy#readme"
+}

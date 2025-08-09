@@ -1,0 +1,143 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20250805221953
+Username: COLLINS-ODHIAMB\PC
+RunAs User: COLLINS-ODHIAMB\PC
+Configuration Name: 
+Machine: COLLINS-ODHIAMB (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 10672
+PSVersion: 5.1.19041.6157
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.19041.6157
+BuildVersion: 10.0.19041.6157
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is ./cleanup-log.txt
+PS C:\Users\PC\project\DatalytIQs-Academy> Write-Host "`n🚀 Starting DatalytIQs Academy Cleanup & Fix Script..." -ForegroundColor Cyan
+
+🚀 Starting DatalytIQs Academy Cleanup & Fix Script...
+PS C:\Users\PC\project\DatalytIQs-Academy> # Step 1: Close Node.js & Code processes that may lock node_modules
+PS C:\Users\PC\project\DatalytIQs-Academy> Write-Host "🛑 Closing interfering processes..." -ForegroundColor Yellow
+🛑 Closing interfering processes...
+PS C:\Users\PC\project\DatalytIQs-Academy> Get-Process node, code -ErrorAction SilentlyContinue | ForEach-Object {
+    Write-Host "Killing process: $($_.Name) ($($_.Id))"
+    Stop-Process -Id $_.Id -Force
+}
+Killing process: node (5256)
+Killing process: node (6304)
+Killing process: node (10620)
+Killing process: node (17188)
+PS C:\Users\PC\project\DatalytIQs-Academy> # Step 2: Force delete node_modules, .next, .turbo, package-lock, yarn.lock
+PS C:\Users\PC\project\DatalytIQs-Academy> $pathsToDelete = @("node_modules", ".next", ".turbo", "package-lock.json", "yarn.lock")
+PS C:\Users\PC\project\DatalytIQs-Academy> foreach ($path in $pathsToDelete) {
+    if (Test-Path $path) {
+        Write-Host "🧹 Deleting $path ..." -ForegroundColor Red
+        takeown /f $path /r /d y | Out-Null
+        icacls $path /grant Everyone:F /T | Out-Null
+        Remove-Item -Force -Recurse -LiteralPath $path -ErrorAction SilentlyContinue
+    }
+}
+🧹 Deleting node_modules ...
+🧹 Deleting .next ...
+🧹 Deleting package-lock.json ...
+PS C:\Users\PC\project\DatalytIQs-Academy> # Step 3: Clean up any redundant folders
+PS C:\Users\PC\project\DatalytIQs-Academy> $redundantDirs = @("firebase-bootstrap", "firebase-old", "firebase_temp")
+PS C:\Users\PC\project\DatalytIQs-Academy> foreach ($dir in $redundantDirs) {
+    if (Test-Path $dir) {
+        Write-Host "🗑️ Removing redundant directory: $dir ..." -ForegroundColor DarkYellow
+        Remove-Item -Recurse -Force $dir
+    }
+}
+PS C:\Users\PC\project\DatalytIQs-Academy> # Step 4: Ensure .gitignore is updated
+PS C:\Users\PC\project\DatalytIQs-Academy> $gitignorePath = ".gitignore"
+PS C:\Users\PC\project\DatalytIQs-Academy> $requiredIgnores = @(
+    "node_modules/",
+    ".next/",
+    ".turbo/",
+    ".env",
+    "firebase-adminsdk.json",
+    "firebase-service-account.json",
+    "firebase-bootstrap/"
+)
+PS C:\Users\PC\project\DatalytIQs-Academy> if (Test-Path $gitignorePath) {
+    $existingIgnores = Get-Content $gitignorePath
+    foreach ($line in $requiredIgnores) {
+        if (-not ($existingIgnores -contains $line)) {
+            Add-Content $gitignorePath $line
+            Write-Host "➕ Added $line to .gitignore"
+        }
+    }
+} else {
+    Set-Content $gitignorePath ($requiredIgnores -join "`n")
+    Write-Host "✅ Created .gitignore with standard ignores."
+}
+➕ Added .turbo/ to .gitignore
+➕ Added .env to .gitignore
+➕ Added firebase-adminsdk.json to .gitignore
+➕ Added firebase-service-account.json to .gitignore
+➕ Added firebase-bootstrap/ to .gitignore
+PS C:\Users\PC\project\DatalytIQs-Academy> # Step 5: Generate/update next.config.js
+PS C:\Users\PC\project\DatalytIQs-Academy> $nextConfig = @"
+const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    esmExternals: false
+  },
+  webpack(config) {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      child_process: false,
+      process: require.resolve('process/browser'),
+    };
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+"@
+PS C:\Users\PC\project\DatalytIQs-Academy> Set-Content -Path "next.config.js" -Value $nextConfig -Encoding UTF8
+PS C:\Users\PC\project\DatalytIQs-Academy> Write-Host "⚙️ next.config.js updated."
+⚙️ next.config.js updated.
+PS C:\Users\PC\project\DatalytIQs-Academy> # Step 6: Reinstall dependencies
+PS C:\Users\PC\project\DatalytIQs-Academy> if (Test-Path "yarn.lock") {
+    Write-Host "📦 Installing dependencies using Yarn..." -ForegroundColor Green
+    yarn install
+} else {
+    Write-Host "📦 Installing dependencies using npm..." -ForegroundColor Green
+    npm install
+}
+📦 Installing dependencies using npm...
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests
+by a key value, which is much more comprehensive and powerful.
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 708 packages, and audited 709 packages in 2m
+
+176 packages are looking for funding
+  run `npm fund` for details
+
+10 moderate severity vulnerabilities
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+PS C:\Users\PC\project\DatalytIQs-Academy> Write-Host "`n✅ Cleanup and setup complete! You may now run your dev server." -ForegroundColor Green
+
+✅ Cleanup and setup complete! You may now run your dev server.
+PS C:\Users\PC\project\DatalytIQs-Academy> Stop-Transcript
+**********************
+Windows PowerShell transcript end
+End time: 20250805222606
+**********************
